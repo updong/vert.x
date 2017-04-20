@@ -143,6 +143,11 @@ public class HttpClientOptions extends ClientOptionsBase {
    * Default max redirect = 16
    */
   public static final int DEFAULT_MAX_REDIRECTS = 16;
+  
+  /*
+   * Default max recycle = -1
+   */
+  public static final int DEFAULT_MAX_RECYCLE = -1;
 
   private boolean verifyHost = true;
   private int maxPoolSize;
@@ -168,6 +173,7 @@ public class HttpClientOptions extends ClientOptionsBase {
   private boolean http2ClearTextUpgrade;
   private boolean sendUnmaskedFrames;
   private int maxRedirects;
+  private int maxRecycle;
 
   /**
    * Default constructor
@@ -207,6 +213,7 @@ public class HttpClientOptions extends ClientOptionsBase {
     this.http2ClearTextUpgrade = other.http2ClearTextUpgrade;
     this.sendUnmaskedFrames = other.isSendUnmaskedFrames();
     this.maxRedirects = other.maxRedirects;
+    this.maxRecycle = other.maxRecycle;
   }
 
   /**
@@ -255,6 +262,7 @@ public class HttpClientOptions extends ClientOptionsBase {
     http2ClearTextUpgrade = DEFAULT_HTTP2_CLEAR_TEXT_UPGRADE;
     sendUnmaskedFrames = DEFAULT_SEND_UNMASKED_FRAMES;
     maxRedirects = DEFAULT_MAX_REDIRECTS;
+    maxRecycle = DEFAULT_MAX_RECYCLE;
   }
 
   @Override
@@ -887,7 +895,25 @@ public class HttpClientOptions extends ClientOptionsBase {
     this.maxRedirects = maxRedirects;
     return this;
   }
-
+  
+  /**
+   * @return the maximum number of recycles on a persistent keepalive connection
+   */
+  public int getMaxRecycle() {
+    return maxRecycle;
+  }
+  
+  /**
+   * Set to {@code maxRecycle} the maximum number of recycles on a persistent keepalive connection
+   *
+   * @param maxRecycle the maximum number of recycles on a persistent keepalive connection
+   * @return a reference to this, so the API can be used fluently
+   */
+  public HttpClientOptions setMaxRecycle(int maxRecycle) {
+    this.maxRecycle = maxRecycle;
+    return this;
+  }
+  
   public HttpClientOptions setMetricsName(String metricsName) {
     return (HttpClientOptions) super.setMetricsName(metricsName);
   }

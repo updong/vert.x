@@ -89,6 +89,7 @@ class ClientConnection extends ConnectionBase implements HttpClientConnection, H
   private boolean reset;
   private boolean paused;
   private Buffer pausedChunk;
+  private int recycleCount;
 
   ClientConnection(HttpVersion version, HttpClientImpl client, Object endpointMetric, Channel channel, boolean ssl, String host,
                    int port, ContextImpl context, Http1xPool pool, HttpClientMetrics metrics) {
@@ -101,6 +102,7 @@ class ClientConnection extends ConnectionBase implements HttpClientConnection, H
     this.metrics = metrics;
     this.version = version;
     this.endpointMetric = endpointMetric;
+    this.recycleCount = 0;
   }
 
   public HttpClientMetrics metrics() {
@@ -109,6 +111,14 @@ class ClientConnection extends ConnectionBase implements HttpClientConnection, H
 
   synchronized HttpClientRequestImpl getCurrentRequest() {
     return currentRequest;
+  }
+  
+  public synchronized void increaseRecycleCount() {
+    recycleCount++;
+  }
+  
+  public int getRecycleCount() {
+    return recycleCount;
   }
 
   synchronized void toWebSocket(String requestURI, MultiMap headers, WebsocketVersion vers, String subProtocols,

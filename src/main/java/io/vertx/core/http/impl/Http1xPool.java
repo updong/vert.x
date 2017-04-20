@@ -46,6 +46,7 @@ public class Http1xPool implements ConnectionManager.Pool<ClientConnection> {
   private final Set<ClientConnection> allConnections = new HashSet<>();
   private final Queue<ClientConnection> availableConnections = new ArrayDeque<>();
   private final int maxSockets;
+  private final int maxRecycle;
 
   public Http1xPool(HttpClientImpl client, HttpClientMetrics metrics, HttpClientOptions options, ConnectionManager.ConnQueue queue,
                     Map<Channel, HttpClientConnection> connectionMap, HttpVersion version, int maxSockets) {
@@ -59,6 +60,7 @@ public class Http1xPool implements ConnectionManager.Pool<ClientConnection> {
     this.ssl = options.isSsl();
     this.connectionMap = connectionMap;
     this.maxSockets = maxSockets;
+    this.maxRecycle = options.getMaxRecycle();
   }
 
   @Override
@@ -84,6 +86,7 @@ public class Http1xPool implements ConnectionManager.Pool<ClientConnection> {
 
   public void recycle(ClientConnection conn) {
     synchronized (queue) {
+      conn.increaseRecycleCount();
       Waiter waiter = queue.getNextWaiter();
       if (waiter != null) {
         queue.deliverStream(conn, waiter);
@@ -98,13 +101,15 @@ public class Http1xPool implements ConnectionManager.Pool<ClientConnection> {
     ContextImpl context = conn.getContext();
     context.runOnContext(v -> {
       if (pipelining && conn.getOutstandingRequestCount() < pipeliningLimit) {
-        recycle(conn);
+        if (maxRecycle < 0 || maxRecycle >= conn.getRecycleCount()) {
+          recycle(conn);
+        }
       }
     });
   }
 
   void responseEnded(ClientConnection conn, boolean close) {
-    if (!keepAlive || close) {
+    if (!keepAlive || close || (maxRecycle >= 0 && conn.getRecycleCount() > maxRecycle)) {
       conn.close();
     } else {
       ContextImpl ctx = conn.getContext();
