@@ -46,7 +46,7 @@ public class Http1xPool implements ConnectionManager.Pool<ClientConnection> {
   private final Set<ClientConnection> allConnections = new HashSet<>();
   private final Queue<ClientConnection> availableConnections = new ArrayDeque<>();
   private final int maxSockets;
-  private final int maxRecycle
+  private final int maxRecycle;
 
   public Http1xPool(HttpClientImpl client, HttpClientMetrics metrics, HttpClientOptions options, ConnectionManager.ConnQueue queue,
                     Map<Channel, HttpClientConnection> connectionMap, HttpVersion version, int maxSockets) {
